@@ -204,4 +204,10 @@ public class ProfileActivity extends AppCompatActivity {
 
         super.onActivityResult(requestCode, resultCode, data);
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        binding=null;
+    }
 }

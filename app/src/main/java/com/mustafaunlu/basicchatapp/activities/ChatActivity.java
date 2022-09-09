@@ -2,7 +2,7 @@ package com.mustafaunlu.basicchatapp.activities;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-
+import android.view.View;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -40,5 +40,9 @@ public class ChatActivity extends AppCompatActivity {
             //Sign out
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void send(View view){
+
     }
 }

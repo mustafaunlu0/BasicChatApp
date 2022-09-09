@@ -11,11 +11,12 @@
         android:layout_width="263dp"
         android:layout_height="252dp"
         android:layout_marginTop="76dp"
+        android:onClick="selectImage"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:srcCompat="@tools:sample/avatars" />
+        android:src="@drawable/ic_launcher_background" />
 
     <EditText
         android:id="@+id/ageEditText"

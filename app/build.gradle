@@ -1,6 +1,8 @@
 plugins {
     id 'com.android.application'
     id 'com.google.gms.google-services'
+    id 'com.onesignal.androidsdk.onesignal-gradle-plugin'
+
 }
 
 android {
@@ -47,5 +49,8 @@ dependencies {
     implementation 'com.google.firebase:firebase-analytics'
 
     implementation 'com.squareup.picasso:picasso:2.71828'
+
+    implementation 'com.onesignal:OneSignal:[4.0.0, 4.99.99]'
+
 
 }

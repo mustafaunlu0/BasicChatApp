@@ -15,8 +15,10 @@ import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -28,6 +30,11 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.mustafaunlu.basicchatapp.R;
 import com.mustafaunlu.basicchatapp.adapter.ChatAdapter;
 import com.mustafaunlu.basicchatapp.databinding.ActivityChatBinding;
+import com.onesignal.OSDeviceState;
+import com.onesignal.OneSignal;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,6 +48,9 @@ public class ChatActivity extends AppCompatActivity {
     private ChatAdapter chatAdapter;
     private ArrayList<String> chatMessages = new ArrayList<>();
 
+    private static final String ONESIGNAL_APP_ID = "0e7ae6f1-27cf-4f97-a5ba-690f0216a936";
+
+
 
     private ActivityChatBinding binding;
 
@@ -50,6 +60,8 @@ public class ChatActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding=ActivityChatBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        pushNotificationWithOneSignal();
 
         mAuth=FirebaseAuth.getInstance();
         firebaseFirestore=FirebaseFirestore.getInstance();
@@ -63,6 +75,60 @@ public class ChatActivity extends AppCompatActivity {
         //getData() -> eklenecek verileri çekmek için
         getData();
 
+        //Get user
+        getUser();
+
+
+
+
+    }
+    private void pushNotificationWithOneSignal(){
+        // Enable verbose OneSignal logging to debug issues if needed.
+        OneSignal.setLogLevel(OneSignal.LOG_LEVEL.VERBOSE, OneSignal.LOG_LEVEL.NONE);
+
+        // OneSignal Initialization
+        OneSignal.initWithContext(this);
+        OneSignal.setAppId(ONESIGNAL_APP_ID);
+
+        // promptForPushNotifications will show the native Android notification permission prompt.
+        // We recommend removing the following code and instead using an In-App Message to prompt for notification permission (See step 7)
+        OneSignal.promptForPushNotifications();
+    }
+
+    private void getUser(){
+
+        OSDeviceState deviceState=OneSignal.getDeviceState();
+        if(deviceState != null){
+            String userId=deviceState.getUserId();
+            Map<String,Object> userIds=new HashMap<>();
+            userIds.put("userID",userId);
+
+            firebaseFirestore.collection("UserIDs").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<QuerySnapshot> task) {
+
+                    if(task.isSuccessful()){
+                        ArrayList<String> playerIDs=new ArrayList<>();
+
+                        for(QueryDocumentSnapshot queryDocumentSnapshot : task.getResult()){
+                            Map<String,Object> map=queryDocumentSnapshot.getData();
+                            String userId= (String) map.get("userID");
+                            playerIDs.add(userId);
+
+                        }
+                        if(!playerIDs.contains(userIds)){
+                            firebaseFirestore.collection("UserIDs").add(userIds);
+                        }
+                    }
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Toast.makeText(getApplicationContext(), e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+
+                }
+            });
+        }
 
     }
     public void send(View view){
@@ -93,6 +159,37 @@ public class ChatActivity extends AppCompatActivity {
 
         binding.messageEditText.setText("");
         getData();
+
+
+        //One Signal
+
+        firebaseFirestore.collection("UserIDs").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if(task.isSuccessful()){
+
+                    for (QueryDocumentSnapshot queryDocumentSnapshot : task.getResult()){
+                        Map<String,Object> map=queryDocumentSnapshot.getData();
+                        String userID= (String) map.get("userID");
+
+
+                        try {
+                            OneSignal.postNotification(new JSONObject("{'contents': {'en':'"+messageToSend+"'}, 'include_player_ids' : ['"+userID+"']}"),null);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(getApplicationContext(), e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+
+            }
+        });
+
 
 
 

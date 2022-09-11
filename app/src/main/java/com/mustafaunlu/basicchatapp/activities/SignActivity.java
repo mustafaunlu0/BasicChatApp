@@ -15,11 +15,13 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.mustafaunlu.basicchatapp.databinding.ActivitySignBinding;
+import com.onesignal.OneSignal;
 
 public class SignActivity extends AppCompatActivity {
 
     private ActivitySignBinding binding;
     private FirebaseAuth mAuth;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,23 +34,29 @@ public class SignActivity extends AppCompatActivity {
         FirebaseUser user=mAuth.getCurrentUser();
 
         if(user != null){
-            Intent intent=new Intent(SignActivity.this,ChatActivity.class);
+            Intent intent=new Intent(getApplicationContext(),ChatActivity.class);
             startActivity(intent);
         }
 
 
 
 
+
     }
+
+
 
     public void signUp(View view){
 
         mAuth.createUserWithEmailAndPassword(binding.emailEditText.getText().toString(),binding.passwordEditText.getText().toString()).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
-                Toast.makeText(getApplicationContext(),"Sign Up",Toast.LENGTH_LONG).show();
-                Intent intent=new Intent(SignActivity.this,ChatActivity.class);
-                startActivity(intent);
+                if(task.isSuccessful()){
+                    Toast.makeText(getApplicationContext(),"Sign Up",Toast.LENGTH_LONG).show();
+                    Intent intent=new Intent(SignActivity.this,ChatActivity.class);
+                    startActivity(intent);
+                }
+
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
